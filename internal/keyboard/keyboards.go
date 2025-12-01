@@ -6,6 +6,7 @@ func MainMenu() tgbotapi.ReplyKeyboardMarkup {
 	return tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton("📦 Каталог"),
+			tgbotapi.NewKeyboardButton("📖 Информация"),
 		),
 	)
 }
