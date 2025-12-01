@@ -9,8 +9,9 @@ import (
 )
 
 type Bot struct {
-	api     *tgbotapi.BotAPI
-	handler *handlers.Handler
+	api   *tgbotapi.BotAPI
+	user  *handlers.UserHandler
+	admin *handlers.AdminHandler
 }
 
 func NewBot(token string, adminID int64) *Bot {
@@ -18,8 +19,12 @@ func NewBot(token string, adminID int64) *Bot {
 	if err != nil {
 		panic("Ошибка создания бота: " + err.Error())
 	}
-	handler := handlers.NewHandler(api, adminID)
-	return &Bot{api: api, handler: handler}
+
+	return &Bot{
+		api:   api,
+		user:  handlers.NewUserHandler(api, adminID),
+		admin: handlers.NewAdminHandler(api, adminID),
+	}
 }
 
 func (b *Bot) Start() {
@@ -28,21 +33,23 @@ func (b *Bot) Start() {
 	updates := b.api.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message != nil { // обычные сообщения
+		if update.Message != nil {
 			chatID := update.Message.Chat.ID
 			text := update.Message.Text
 
-			if chatID == b.handler.AdminID {
+			// Админские команды
+			if chatID == b.admin.AdminID {
 				if strings.HasPrefix(text, "add ") {
-					b.handler.AddProduct(text[4:], chatID)
+					b.admin.AddProduct(text[4:], chatID)
 					continue
 				}
 				if strings.HasPrefix(text, "del ") {
-					b.handler.DeleteProduct(text[4:], chatID)
+					b.admin.DeleteProduct(text[4:], chatID)
 					continue
 				}
 			}
 
+			// Пользовательские команды
 			switch text {
 			case "/start":
 				msg := tgbotapi.NewMessage(chatID, "Добро пожаловать!")
@@ -50,7 +57,8 @@ func (b *Bot) Start() {
 				b.api.Send(msg)
 
 			case "📦 Каталог":
-				b.handler.Catalog(chatID)
+				b.user.Catalog(chatID)
+
 			case "📖 Информация":
 				contactInfo := "Розничная продажа в г.Казань (личная встреча) - 750₽\n" +
 					"Оптовая продажа 450₽ (от 20 шт, личная встреча в г.Казань)"
@@ -58,9 +66,10 @@ func (b *Bot) Start() {
 			}
 		}
 
-		// Обработка Inline кнопок
+		// Inline кнопки (покупка)
 		if update.CallbackQuery != nil {
-			b.handler.HandleBuy(update.CallbackQuery)
+			b.user.HandleBuy(update.CallbackQuery)
+			b.api.Request(tgbotapi.NewCallback(update.CallbackQuery.ID, "Спасибо!"))
 		}
 	}
 }
