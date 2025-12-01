@@ -70,7 +70,7 @@ var Catalog = []Product{
 		Name:        "GTMBAR Spark 8000 RASPBERRY WATERMELON",
 		Description: "Малина арбуз 2%",
 		Price:       750,
-		PhotoURL:    "https://nsk.ilfumoshop.ru/image/cache/import_files/ce/ce83f0b0-b04d-11ee-aee7-00155dcf0b04-600x600.jpeg",
+		PhotoURL:    "https://nsk.ilfumoshop.ru/image/cache/import_files/86/86e048af-b04c-11ee-aee7-00155dcf0b04-600x600.jpeg",
 	},
 }
 
